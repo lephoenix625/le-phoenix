@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Le Phoenix - Résolution Math</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 40px;
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    input, button, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+    button {
+      background-color: #008CBA;
+      color: white;
+      font-weight: bold;
+    }
+    .steps {
+      margin-top: 20px;
+      text-align: left;
+    }
+    #imagePreview {
+      max-width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Le Phoenix</h2>
+    <p>Résolvez vos exercices de maths</p>
+    
+    <!-- Entrée texte -->
+    <input type="text" id="expression" placeholder="Entrez une expression ou une question" />
+    <button onclick="resoudre()">Résoudre</button>
+    
+    <hr />
+
+    <!-- Image -->
+    <input type="file" accept="image/*" onchange="handleImage(event)">
+    <img id="imagePreview" />
+    <button onclick="extraireTexte()">Extraire depuis l'image</button>
+    
+    <div id="resultat" class="steps"></div>
+  </div>
+
+  <script>
+    function resoudre() {
+      const input = document.getElementById("expression").value.toLowerCase();
+      const output = document.getElementById("resultat");
+      output.innerHTML = "";
+
+      // Réponse personnalisée
+      if (input.includes("qui est ton créateur") || input.includes("ton créateur")) {
+        output.innerHTML = "<p><strong>Mon créateur est Fabien Kouakou.</strong></p>";
+        return;
+      }
+
+      try {
+        if (input.includes("=")) {
+          const sides = input.split("=");
+          const solution = math.solve(sides[0] + " - (" + sides[1] + ")", 'x');
+          output.innerHTML += `<p><strong>Étape 1:</strong> Réécriture de l'équation: ${sides[0]} - (${sides[1]}) = 0</p>`;
+          output.innerHTML += `<p><strong>Étape 2:</strong> Résolution: x = ${solution}</p>`;
+        } else {
+          const result = math.evaluate(input);
+          output.innerHTML += `<p><strong>Résultat:</strong> ${result}</p>`;
+        }
+      } catch (err) {
+        output.innerHTML = "<p style='color: red;'>Erreur : Veuillez entrer une expression valide.</p>";
+      }
+    }
+
+    function handleImage(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('imagePreview').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function extraireTexte() {
+      const image = document.getElementById('imagePreview').src;
+      const output = document.getElementById("resultat");
+      output.innerHTML = "<p>Analyse de l'image en cours...</p>";
+
+      Tesseract.recognize(
+        image,
+        'eng+fra',
+        {
+          logger: m => console.log(m)
+        }
+      ).then(({ data: { text } }) => {
+        document.getElementById("expression").value = text.trim();
+        output.innerHTML = `<p><strong>Texte extrait :</strong><br>${text.trim()}</p>`;
+      });
+    }
+  </script>
+</body>
+  </html>
